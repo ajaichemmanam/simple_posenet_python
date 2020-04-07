@@ -168,12 +168,13 @@ print('heatmaps', heatmaps.shape)
 # ##########
 
 # Constants
-max_pose_detections = 10
+max_pose_detections = 10  # Maximum number of poses to be detected from a image
 NUM_KEYPOINTS = len(KEYPOINT_NAMES)
 LOCAL_MAXIMUM_RADIUS = 1
 nms_radius = 20
-score_threshold = 0.5
-min_pose_score = 0.5
+min_part_score = 0.5  # Minimum score for a valid keypoint
+min_pose_score = 0.5  # Minimum score for a valid pose
+min_keypoints = 5  # Minimum keypoints to be detected for a valid pose
 
 # Initialize pose data
 pose_count = 0
@@ -191,7 +192,7 @@ for hmy in range(height):
     for hmx in range(width):
         for keypoint_id in range(heatmaps.shape[2]):
             score = heatmaps[hmy, hmx, keypoint_id]
-            if score < score_threshold:
+            if score < min_part_score:
                 continue
 
             y_start = max(hmy - LOCAL_MAXIMUM_RADIUS, 0)
@@ -273,39 +274,51 @@ for root_score, root_id, root_coord in scored_parts:
 # RESULTS are now in pose_scores, pose_keypoint_scores, pose_keypoint_coords
 for posenum, pose_score in enumerate(pose_scores):
     if pose_score > min_pose_score:
+
         print('Pose Scores', pose_score)
         print('Pose Keypoint Scores', pose_keypoint_scores[posenum])
         print('Pose Keypoint Coords', pose_keypoint_coords[posenum])
 
-        # Show all Keypoints
-        implot = plt.imshow(img)
-        x_points = []
-        y_points = []
-        for y, x in pose_keypoint_coords[posenum]:
-            x_points.append(x)
-            y_points.append(y)
-        plt.scatter(x=x_points, y=y_points, c='r', s=40)
-        plt.show()
+        goodKeypoints = []
+        for idx in range(len(pose_keypoint_scores[posenum])):
+            if(pose_keypoint_scores[posenum][idx] > min_part_score):
+                goodKeypoints.append(pose_keypoint_coords[posenum][idx])
 
-        # Show Connected Keypoints
-        plt.figure(20)
-        for pt1, pt2 in CONNECTED_KEYPOINT_INDICES:
+        if len(goodKeypoints) > min_keypoints: #Check if there are enough keypoints to consider it as a valid pose
+
+            # Show all Keypoints
+            implot = plt.imshow(img)
+            x_points = []
+            y_points = []
+            for idx in range(len(pose_keypoint_scores[posenum])):
+                if pose_keypoint_scores[posenum][idx] > min_part_score:
+                    y, x = pose_keypoint_coords[posenum][idx]
+                    x_points.append(x)
+                    y_points.append(y)
+            plt.scatter(x=x_points, y=y_points, c='r', s=40)
+            plt.show()
+
+            # Show Connected Keypoints
+            plt.figure(20)
             plt.title('connection points')
             implot = plt.imshow(img)
-            plt.plot((pose_keypoint_coords[posenum][pt1][1], pose_keypoint_coords[posenum][pt2][1]), (
-                pose_keypoint_coords[posenum][pt1][0], pose_keypoint_coords[posenum][pt2][0]), 'ro-', linewidth=2, markersize=5)
-        plt.show()
+            for pt1, pt2 in CONNECTED_KEYPOINT_INDICES:
+                if(pose_keypoint_scores[posenum][pt1] > min_part_score and pose_keypoint_scores[posenum][pt2] > min_part_score):
+                    plt.plot((pose_keypoint_coords[posenum][pt1][1], pose_keypoint_coords[posenum][pt2][1]), (
+                        pose_keypoint_coords[posenum][pt1][0], pose_keypoint_coords[posenum][pt2][0]), 'ro-', linewidth=2, markersize=5)
+            plt.show()
 
-        # Get Bounding BOX
-        (xmin, ymin), (xmax, ymax) = getBoundingBox(
-            pose_keypoint_coords[posenum])
-        print('Bonding Box xmin,ymin, xmax, ymax format: ', xmin, ymin, xmax, ymax)
+            # Get Bounding BOX
 
-        # Show Bounding BOX
-        implot = plt.imshow(img)  # Get the current reference / axis
-        ax = plt.gca()  # Create a Rectangle patch
-        rect = patches.Rectangle((xmin, ymin), xmax-xmin, ymax-ymin,
-                                 linewidth=1, edgecolor='r', facecolor='none', fill=False)
+            (xmin, ymin), (xmax, ymax) = getBoundingBox(goodKeypoints)
+            print('Bonding Box xmin,ymin, xmax, ymax format: ',
+                  xmin, ymin, xmax, ymax)
 
-        ax.add_patch(rect)  # Add the patch
-        plt.show()
+            # Show Bounding BOX
+            implot = plt.imshow(img)  # Get the current reference / axis
+            ax = plt.gca()  # Create a Rectangle patch
+            rect = patches.Rectangle((xmin, ymin), xmax-xmin, ymax-ymin,
+                                     linewidth=1, edgecolor='r', facecolor='none', fill=False)
+
+            ax.add_patch(rect)  # Add the patch
+            plt.show()
