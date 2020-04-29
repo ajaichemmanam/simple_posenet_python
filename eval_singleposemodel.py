@@ -1,10 +1,10 @@
-import tfjs_graph_converter as tfjs
 import tensorflow as tf
 import math
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from utils import load_graph_model, get_input_tensors, get_output_tensors
 # make tensorflow stop spamming messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = "3"
 
@@ -39,7 +39,7 @@ CONNECTED_KEYPOINT_INDICES = [(KEYPOINT_IDS[a], KEYPOINT_IDS[b])
 
 
 print("Loading model...", end="")
-graph = tfjs.api.load_graph_model(modelPath)
+graph = load_graph_model(modelPath)
 print("done.\nLoading sample image...", end="")
 
 
@@ -86,9 +86,9 @@ print("done.\nRunning inference...", end="")
 
 # evaluate the loaded model directly
 with tf.compat.v1.Session(graph=graph) as sess:
-    input_tensor_names = tfjs.util.get_input_tensors(graph)
+    input_tensor_names = get_input_tensors(graph)
     print(input_tensor_names)
-    output_tensor_names = tfjs.util.get_output_tensors(graph)
+    output_tensor_names = get_output_tensors(graph)
     print(output_tensor_names)
     input_tensor = graph.get_tensor_by_name(input_tensor_names[0])
     results = sess.run(output_tensor_names, feed_dict={

@@ -20,3 +20,6 @@ MULTIPOSE OUTPUT
 ![MultiPose Connected Keypoints](https://raw.githubusercontent.com/ajaichemmanam/simple_posenet_python/master/assets/multipose_connectedkeypoints.png)
 
 Multipose  gives better results than singlepose even for single person. Due to graph tree based refinement.
+
+ACKNOWLEDGEMENT
+Thanks to https://github.com/patlevin for support functions

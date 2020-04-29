@@ -1,10 +1,10 @@
-import tfjs_graph_converter as tfjs
 import tensorflow as tf
 import math
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from utils import load_graph_model, get_input_tensors, get_output_tensors
 # make tensorflow stop spamming messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = "3"
 
@@ -54,7 +54,7 @@ PARENT_CHILD_TUPLES = [(KEYPOINT_IDS[parent], KEYPOINT_IDS[child])
 
 
 print("Loading model...", end="")
-graph = tfjs.api.load_graph_model(modelPath)  # downloaded from the link above
+graph = load_graph_model(modelPath)  # downloaded from the link above
 print("done.\nLoading sample image...", end="")
 
 
@@ -145,9 +145,9 @@ print("done.\nRunning inference...", end="")
 
 # evaluate the loaded model directly
 with tf.compat.v1.Session(graph=graph) as sess:
-    input_tensor_names = tfjs.util.get_input_tensors(graph)
+    input_tensor_names = get_input_tensors(graph)
     print(input_tensor_names)
-    output_tensor_names = tfjs.util.get_output_tensors(graph)
+    output_tensor_names = get_output_tensors(graph)
     print(output_tensor_names)
     input_tensor = graph.get_tensor_by_name(input_tensor_names[0])
     results = sess.run(output_tensor_names, feed_dict={
@@ -284,7 +284,8 @@ for posenum, pose_score in enumerate(pose_scores):
             if(pose_keypoint_scores[posenum][idx] > min_part_score):
                 goodKeypoints.append(pose_keypoint_coords[posenum][idx])
 
-        if len(goodKeypoints) > min_keypoints: #Check if there are enough keypoints to consider it as a valid pose
+        # Check if there are enough keypoints to consider it as a valid pose
+        if len(goodKeypoints) > min_keypoints:
 
             # Show all Keypoints
             implot = plt.imshow(img)
