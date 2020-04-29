@@ -21,5 +21,5 @@ MULTIPOSE OUTPUT
 
 Multipose  gives better results than singlepose even for single person. Due to graph tree based refinement.
 
-ACKNOWLEDGEMENT
+# ACKNOWLEDGEMENT
 Thanks to https://github.com/patlevin for support functions
